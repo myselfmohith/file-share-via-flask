@@ -1,0 +1,98 @@
+{% extends 'basehtml.html' %}
+
+{% block tittle %}
+<title>Home Page</title>
+{% endblock %}
+
+{% block body %}
+
+<form enctype="multipart/form-data">
+    <input type="file" name="ifile">
+    <button type="submit">Submit</button>
+</form>
+
+<ul class="files-download">
+    {% for i in lfiles: %}
+        <li>
+            <span>{{i}}</span>
+            <a href="/download/{{i}}" download="{{i}}">🔽</a>
+        </li>
+    {% endfor %}
+</ul>
+
+<script>
+    document.querySelector('form').addEventListener('submit', e => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('ifile', e.target.ifile.files[0]);
+        appendFile(e.target.ifile.files[0].name)
+        fetch('/upload', {
+            method: "post",
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById(data.fileID).classList.remove('uploading')
+                e.target.ifile.value = ''
+            })
+    })
+
+
+    function appendFile(fname) {
+        const newLI = document.createElement('li');
+        newLI.className = 'uploading'
+        newLI.id = fname
+        newLI.innerHTML = `<span>${fname}</span><a href="/download/${fname}" download="${fname}">🔽</a>`
+        document.querySelector('ul').appendChild(newLI)
+    }
+
+</script>
+
+<style>
+    ul {
+        list-style: none;
+        width: 90vw;
+        max-width: 800px;
+        margin: auto;
+    }
+
+    ul li {
+        margin: 5px auto;
+        border: solid #ff643480;
+        border-radius: 10px;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    ul .uploading {
+        opacity: .5;
+        pointer-events: none;
+        position: relative;
+    }
+
+    ul .uploading::after {
+        content: "";
+        width: 15px;
+        height: 15px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        border: solid 5px #ff6434;
+        border-left: solid 5px transparent;
+        animation: loading 1s infinite forwards linear;
+    }
+
+    @keyframes loading {
+        from {
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+
+        to {
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+    }
+</style>
+
+{% endblock %}
